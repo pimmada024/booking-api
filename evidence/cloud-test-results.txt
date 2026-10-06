@@ -1,0 +1,112 @@
+Campus Equipment Booking API - test run
+Base URL: https://booking-api.task-6731503024.workers.dev/api
+Date    : Tue Oct  6 14:50:49 +07 2026
+--------------------------------------------------------------
+1. List equipment
+Request : GET https://booking-api.task-6731503024.workers.dev/api/equipment
+Expected: 200
+Actual  : 200
+Response: [{"id":"eq-1","name":"Projector A","location":"Building 1"},{"id":"eq-2","name":"Camera B","location":"Building 2"},{"id":"eq-3","name":"Meeting Room C","location":"Building 3"}]
+Result  : PASS
+--------------------------------------------------------------
+2. List bookings
+Request : GET https://booking-api.task-6731503024.workers.dev/api/bookings
+Expected: 200
+Actual  : 200
+Response: []
+Result  : PASS
+--------------------------------------------------------------
+3. Create a booking
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : {"equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T09:00:00.000Z","endAt":"2026-10-20T11:00:00.000Z","purpose":"Class presentation"}
+Expected: 201
+Actual  : 201
+Response: {"id":"23e45c88-9a60-43ee-99bf-7d3df0c577aa","equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T09:00:00.000Z","endAt":"2026-10-20T11:00:00.000Z","purpose":"Class presentation","createdAt":"2026-10-06 07:50:50"}
+Result  : PASS
+Booking id used for the next steps: 23e45c88-9a60-43ee-99bf-7d3df0c577aa
+--------------------------------------------------------------
+4. Get one booking
+Request : GET https://booking-api.task-6731503024.workers.dev/api/bookings/23e45c88-9a60-43ee-99bf-7d3df0c577aa
+Expected: 200
+Actual  : 200
+Response: {"id":"23e45c88-9a60-43ee-99bf-7d3df0c577aa","equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T09:00:00.000Z","endAt":"2026-10-20T11:00:00.000Z","purpose":"Class presentation","createdAt":"2026-10-06 07:50:50"}
+Result  : PASS
+--------------------------------------------------------------
+5. Update a booking (move to 12:00-14:00)
+Request : PATCH https://booking-api.task-6731503024.workers.dev/api/bookings/23e45c88-9a60-43ee-99bf-7d3df0c577aa
+Body    : {"equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T12:00:00.000Z","endAt":"2026-10-20T14:00:00.000Z","purpose":"Updated class presentation"}
+Expected: 200
+Actual  : 200
+Response: {"id":"23e45c88-9a60-43ee-99bf-7d3df0c577aa","equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T12:00:00.000Z","endAt":"2026-10-20T14:00:00.000Z","purpose":"Updated class presentation","createdAt":"2026-10-06 07:50:50"}
+Result  : PASS
+--------------------------------------------------------------
+6. Invalid time range (start after end)
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : {"equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-21T11:00:00.000Z","endAt":"2026-10-21T09:00:00.000Z","purpose":"Invalid time range test"}
+Expected: 400
+Actual  : 400
+Response: {"error":"startAt must be before endAt"}
+Result  : PASS
+--------------------------------------------------------------
+7. Overlapping booking, same equipment
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : {"equipmentId":"eq-1","borrowerName":"Suda Dee","startAt":"2026-10-20T12:30:00.000Z","endAt":"2026-10-20T13:30:00.000Z","purpose":"Conflict test"}
+Expected: 409
+Actual  : 409
+Response: {"error":"Equipment 'eq-1' is already booked during this time (booking 23e45c88-9a60-43ee-99bf-7d3df0c577aa)"}
+Result  : PASS
+--------------------------------------------------------------
+8. Missing booking
+Request : GET https://booking-api.task-6731503024.workers.dev/api/bookings/not-found
+Expected: 404
+Actual  : 404
+Response: {"error":"Booking not found"}
+Result  : PASS
+--------------------------------------------------------------
+9. Missing required field (no borrowerName)
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : {"equipmentId":"eq-1","startAt":"2026-10-22T09:00:00.000Z","endAt":"2026-10-22T11:00:00.000Z","purpose":"Missing field test"}
+Expected: 400
+Actual  : 400
+Response: {"error":"borrowerName is required and must be a non-empty string"}
+Result  : PASS
+--------------------------------------------------------------
+10. Malformed JSON body
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : { "equipmentId": 
+Expected: 400
+Actual  : 400
+Response: {"error":"Request body must be a valid JSON object"}
+Result  : PASS
+--------------------------------------------------------------
+11. Equipment does not exist
+Request : POST https://booking-api.task-6731503024.workers.dev/api/bookings
+Body    : {"equipmentId":"eq-999","borrowerName":"Somchai Jaidee","startAt":"2026-10-22T09:00:00.000Z","endAt":"2026-10-22T11:00:00.000Z","purpose":"Unknown equipment test"}
+Expected: 404
+Actual  : 404
+Response: {"error":"Equipment 'eq-999' not found"}
+Result  : PASS
+--------------------------------------------------------------
+12. Partial update does not conflict with itself
+Request : PATCH https://booking-api.task-6731503024.workers.dev/api/bookings/23e45c88-9a60-43ee-99bf-7d3df0c577aa
+Body    : {"purpose":"Purpose only update"}
+Expected: 200
+Actual  : 200
+Response: {"id":"23e45c88-9a60-43ee-99bf-7d3df0c577aa","equipmentId":"eq-1","borrowerName":"Somchai Jaidee","startAt":"2026-10-20T12:00:00.000Z","endAt":"2026-10-20T14:00:00.000Z","purpose":"Purpose only update","createdAt":"2026-10-06 07:50:50"}
+Result  : PASS
+--------------------------------------------------------------
+13. Delete a booking
+Request : DELETE https://booking-api.task-6731503024.workers.dev/api/bookings/23e45c88-9a60-43ee-99bf-7d3df0c577aa
+Expected: 204
+Actual  : 204
+Response: (empty)
+Result  : PASS
+--------------------------------------------------------------
+14. Deleted booking is gone
+Request : GET https://booking-api.task-6731503024.workers.dev/api/bookings/23e45c88-9a60-43ee-99bf-7d3df0c577aa
+Expected: 404
+Actual  : 404
+Response: {"error":"Booking not found"}
+Result  : PASS
+==============================================================
+Summary: 14 passed, 0 failed
